@@ -1,4 +1,4 @@
 Par7
 ====
 
-Playground to experiment with grammars
+Playground for experimenting with grammars.
