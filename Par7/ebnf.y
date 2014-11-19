@@ -31,6 +31,11 @@ void yyerror(const char *str)
 
 %union
 {
+    Term         m_term;
+    Def          m_def;
+    Definitions  m_definitions;
+    Rule         m_rule;
+    Syntax       m_syntax;
     std::string* m_str;
     int          m_int;
 }
@@ -39,9 +44,14 @@ void yyerror(const char *str)
 
 %token <m_str> ID "identifier"
 %token <m_str> STR "string"
+%type  <m_term> term
+%type  <m_def>  def
+%type  <m_definitions> definitions
+%type  <m_rule>        rule
+%type  <m_syntax>      syntax
 
-%printer    { std::clog << *$$; } ID
-%destructor { delete $$; } ID
+%printer    { std::clog << *$$; } ID STR
+%destructor { delete $$; } ID STR
 
 %%
 
