@@ -2,23 +2,25 @@
 
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <vector>
 
 //==============================================================================
 // Forward declarations
 //==============================================================================
-// Seems to be the only way to include definitions required by union in cou.tab.hpp
 
-#include "ebnf.tab.hpp"
+// To disable Clang's deprecation warning
+#define register
 
-#include <string>
-#include <tuple>
-#include <vector>
+struct Term : std::string { using std::string::string; virtual ~Term() {} Term(const std::string& s) : std::string(s) {} };
 
-struct Term : std::tuple<std::string> {};
+struct Terminal    : Term { using Term::Term;    Terminal(const std::string& s) : Term(s) {} };
 
-struct Def  : std::vector<Term> {};
+struct NonTerminal : Term { using Term::Term; NonTerminal(const std::string& s) : Term(s) {} };
 
-struct Definitions : std::vector<Def> {};
+struct Def  : std::vector<std::unique_ptr<Term>> {};
+
+struct Definitions : std::vector<Def> { using std::vector<Def>::vector; };
 
 struct Rule : Definitions { std::string nonterminal; };
 

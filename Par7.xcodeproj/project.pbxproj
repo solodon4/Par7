@@ -76,8 +76,8 @@
 		977CA77C1A18214700A01424 /* ebnfparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ebnfparser.cpp; sourceTree = "<group>"; };
 		977CA77D1A18214700A01424 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		977CA77E1A18214700A01424 /* ypp.sed */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ypp.sed; sourceTree = "<group>"; };
-		977CA7871A18414A00A01424 /* ebnf.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = ebnf.l; sourceTree = "<group>"; };
-		977CA7881A18414A00A01424 /* ebnf.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = ebnf.y; sourceTree = "<group>"; };
+		977CA7871A18414A00A01424 /* ebnf.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = ebnf.l; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		977CA7881A18414A00A01424 /* ebnf.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = ebnf.y; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -298,6 +298,7 @@
 				977CA7781A181C7100A01424 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

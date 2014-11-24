@@ -12,6 +12,7 @@
 #endif
 
 #include "ebnfdefs.hpp"
+#include "ebnf.tab.hpp"
 
 int g_line = 1;
 %}

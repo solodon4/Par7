@@ -6,7 +6,6 @@
 
 %{
 #include "ebnfdefs.hpp"
-
 using namespace std;
 
 int  yyparse(void);
@@ -31,13 +30,16 @@ void yyerror(const char *str)
 
 %union
 {
-    Term         m_term;
-    Def          m_def;
-    Definitions  m_definitions;
-    Rule         m_rule;
-    Syntax       m_syntax;
-    std::string* m_str;
-    int          m_int;
+    //    YYSTYPE() { new(&m_term) Term(); }  // FIX: try to make this work without keeping pointers only
+    //    ~YYSTYPE();
+    //    YYSTYPE& operator=(const YYSTYPE&);
+    Term*         m_term;
+    Def*          m_def;
+    Definitions*  m_definitions;
+    Rule*         m_rule;
+    Syntax*       m_syntax;
+    std::string*  m_str;
+    int           m_int;
 }
 
 %start syntax
@@ -50,7 +52,7 @@ void yyerror(const char *str)
 %type  <m_rule>        rule
 %type  <m_syntax>      syntax
 
-%printer    { std::clog << *$$; } ID STR
+%printer    { std::clog << $$; } ID STR
 %destructor { delete $$; } ID STR
 
 %%
@@ -66,17 +68,17 @@ rule
 
 definitions
     : def '|' definitions
-    | def
-    | /* empty */
+    | def                   //{ $$ = new Definitions{std::move(*$1)}; }
+    | /* empty */           { $$ = new Definitions; }
     ;
 
-def : term def
-    | /* empty */
+    def : term def          { $2->push_back(std::unique_ptr<Term>($1)); $$ = $2; }
+    | /* empty */           { $$ = new Def; }
     ;
 
 term
-    : ID
-    | STR
+    : ID                    { $$ = new NonTerminal(*$1); }
+    | STR                   { $$ = new    Terminal(*$1); }
     ;
 
 %%
