@@ -18,11 +18,17 @@ struct Terminal    : Term { using Term::Term;    Terminal(const std::string& s) 
 
 struct NonTerminal : Term { using Term::Term; NonTerminal(const std::string& s) : Term(s) {} };
 
-struct Def  : std::vector<std::unique_ptr<Term>> {};
+struct Def  : std::vector<std::unique_ptr<Term>>
+{
+    using std::vector<std::unique_ptr<Term>>::vector;
+
+    //Def()        : std::vector<std::unique_ptr<Term>>()  {}
+    //Def(Def&& d) : std::vector<std::unique_ptr<Term>>(d) {}
+};
 
 struct Definitions : std::vector<Def> { using std::vector<Def>::vector; };
 
-struct Rule : Definitions { std::string nonterminal; };
+struct Rule : Definitions { std::string nonterminal; using Definitions::Definitions; /*Rule(std::string&& s, Definitions&& d) : nonterminal(s), Definitions(d) {}*/ };
 
 struct Syntax : std::vector<Rule> {};
 

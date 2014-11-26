@@ -63,16 +63,16 @@ syntax
 	;
 
 rule
-    : ID '=' definitions
+    : ID '=' definitions   // { $$ = new Rule(std::move(*$1), std::move(*$3)); }
 	;
 
 definitions
-    : def '|' definitions
-    | def                   //{ $$ = new Definitions{std::move(*$1)}; }
+    : def '|' definitions   { $$ = $3;              $$->emplace_back(std::move(*$1)); }
+    | def                   { $$ = new Definitions; $$->emplace_back(std::move(*$1)); }
     | /* empty */           { $$ = new Definitions; }
     ;
 
-    def : term def          { $2->push_back(std::unique_ptr<Term>($1)); $$ = $2; }
+    def : term def          { $2->emplace_back(std::unique_ptr<Term>($1)); $$ = $2; }
     | /* empty */           { $$ = new Def; }
     ;
 

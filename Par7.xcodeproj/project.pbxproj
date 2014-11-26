@@ -225,6 +225,10 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ftemplate-backtrace-limit=0",
+				);
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "$(DERIVED_FILE_DIR)/";
 			};
@@ -260,6 +264,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ftemplate-backtrace-limit=0",
+				);
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "$(DERIVED_FILE_DIR)/";
 			};

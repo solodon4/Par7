@@ -60,8 +60,8 @@ extern int yydebug;
 
 int main(int argc, char* argv[])
 {
-    yydebug = 0;       // disable Yacc debugging mode
-    yy_flex_debug = 0; // disable Flex debugging mode
+    yydebug = 1;       // disable Yacc debugging mode
+    yy_flex_debug = 1; // disable Flex debugging mode
     std::string base_name = "undefined";
 
     try
