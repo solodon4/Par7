@@ -58,12 +58,12 @@ void yyerror(const char *str)
 %%
 
 syntax
-    : syntax rule
-    | /* empty */
+    : syntax rule           { $$ = $1;              $$->emplace_back(std::move(*$2)); }
+    | /* empty */           { $$ = new Syntax; }
 	;
 
 rule
-    : ID '=' definitions   // { $$ = new Rule(std::move(*$1), std::move(*$3)); }
+    : ID '=' definitions    { $$ = new Rule(std::move(*$1), std::move(*$3)); }
 	;
 
 definitions
