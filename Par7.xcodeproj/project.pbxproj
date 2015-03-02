@@ -71,6 +71,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9739F6F61AA4378D00D1BE06 /* utf-8-reader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "utf-8-reader.hpp"; sourceTree = "<group>"; };
 		977CA76F1A181C7100A01424 /* Par7 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Par7; sourceTree = BUILT_PRODUCTS_DIR; };
 		977CA77B1A18214700A01424 /* ebnfdefs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ebnfdefs.hpp; sourceTree = "<group>"; };
 		977CA77C1A18214700A01424 /* ebnfparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ebnfparser.cpp; sourceTree = "<group>"; };
@@ -110,6 +111,7 @@
 		977CA7711A181C7100A01424 /* Par7 */ = {
 			isa = PBXGroup;
 			children = (
+				9739F6F61AA4378D00D1BE06 /* utf-8-reader.hpp */,
 				977CA7871A18414A00A01424 /* ebnf.l */,
 				977CA7881A18414A00A01424 /* ebnf.y */,
 				977CA77B1A18214700A01424 /* ebnfdefs.hpp */,

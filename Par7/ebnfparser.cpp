@@ -50,6 +50,8 @@
 #include <iostream>
 #include <sstream>
 
+#include_next "utf-8-reader.hpp"
+
 //------------------------------------------------------------------------------
 
 extern int yyparse(void);
@@ -72,6 +74,32 @@ int main(int argc, char* argv[])
             return 1;
         }
 
+#if 0
+        std::fstream binfile(argv[1], std::ios::in | std::ios::binary | std::ios::out);
+
+        const size_t N = 256;
+        char buffer[N];
+        unicode::code_point result[N];
+
+        while (binfile)
+        {
+            size_t n = N;
+
+            binfile.read(buffer, 256);
+            std::streamsize bytes = binfile.gcount(); // Number of bytes actually read
+
+            unicode::utf8decode(buffer, bytes, result, n);
+
+            for (size_t i = 0; i < N-n; ++i)
+            {
+                std::cout << "\\U" << result[i] << std::endl;
+            }
+            
+        }
+        
+        binfile.close();
+        return 0;
+#else
         if (!freopen(argv[1],"r",stdin)) //redirect standard input
         {
             std::cerr << "Error: Can't open file " << argv[1] << std::endl;
@@ -85,6 +113,7 @@ int main(int argc, char* argv[])
         std::clog.flush();
 
         return result;
+#endif
     }
     catch (...)
     {
