@@ -50,13 +50,15 @@
 #include <iostream>
 #include <sstream>
 
-#include_next "utf-8-reader.hpp"
+#include "ebnfdefs.hpp"
+#include "utf-8-reader.hpp"
 
 //------------------------------------------------------------------------------
 
 extern int yyparse(void);
 extern int yy_flex_debug;
 extern int yydebug;
+Syntax* grammar = nullptr;
 
 //------------------------------------------------------------------------------
 
@@ -111,6 +113,12 @@ int main(int argc, char* argv[])
 
         int result = yyparse();
         std::clog.flush();
+
+        if (result == 0)
+        {
+            assert(grammar); // Must be valid object after successful parsing
+            std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
+        }
 
         return result;
 #endif

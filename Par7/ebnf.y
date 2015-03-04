@@ -58,8 +58,8 @@ void yyerror(const char *str)
 %%
 
 syntax
-    : syntax rule           { $$ = $1;              $$->emplace_back(std::move(*$2)); }
-    | /* empty */           { $$ = new Syntax; }
+    : syntax rule           { $$ = $1; $$->prepend(std::move(*$2)); }
+    | /* empty */           { extern Syntax* grammar; grammar = $$ = new Syntax; }
 	;
 
 rule
@@ -67,12 +67,12 @@ rule
 	;
 
 definitions
-    : def '|' definitions   { $$ = $3;              $$->emplace_back(std::move(*$1)); }
-    | def                   { $$ = new Definitions; $$->emplace_back(std::move(*$1)); }
+    : def '|' definitions   { $$ = $3;              $$->prepend(std::move(*$1)); }
+    | def                   { $$ = new Definitions; $$->prepend(std::move(*$1)); }
     | /* empty */           { $$ = new Definitions; }
     ;
 
-    def : term def          { $2->emplace_back(std::unique_ptr<Term>($1)); $$ = $2; }
+    def : term def          { $$ = $2; $$->prepend(std::unique_ptr<Term>($1)); }
     | /* empty */           { $$ = new Def; }
     ;
 
