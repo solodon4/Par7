@@ -1,0 +1,5 @@
+Expr   = AddOp Term | Expr AddOp Term ;
+Term   = Factor MulOp Factor ;
+Factor = ident | number | "(" Expr ")" ;
+AddOp  = "+" | "-" ;
+MulOp  = "*" | "/" ;

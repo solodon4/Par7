@@ -35,7 +35,7 @@ void yyerror(const char *str)
     //    YYSTYPE& operator=(const YYSTYPE&);
     Term*         m_term;
     Def*          m_def;
-    Definitions*  m_definitions;
+    Alternatives* m_alt;
     Rule*         m_rule;
     Syntax*       m_syntax;
     std::string*  m_str;
@@ -48,7 +48,7 @@ void yyerror(const char *str)
 %token <m_str> STR "string"
 %type  <m_term> term
 %type  <m_def>  def
-%type  <m_definitions> definitions
+%type  <m_alt>  alternatives
 %type  <m_rule>        rule
 %type  <m_syntax>      syntax
 
@@ -58,18 +58,18 @@ void yyerror(const char *str)
 %%
 
 syntax
-    : syntax rule           { $$ = $1; $$->prepend(std::move(*$2)); }
+    : syntax rule           { $$ = $1; $$->emplace_back(std::move(*$2)); }
     | /* empty */           { extern Syntax* grammar; grammar = $$ = new Syntax; }
 	;
 
 rule
-    : ID '=' definitions    { $$ = new Rule(std::move(*$1), std::move(*$3)); }
+    : ID '=' alternatives ';' { $$ = new Rule(std::move(*$1), std::move(*$3)); }
 	;
 
-definitions
-    : def '|' definitions   { $$ = $3;              $$->prepend(std::move(*$1)); }
-    | def                   { $$ = new Definitions; $$->prepend(std::move(*$1)); }
-    | /* empty */           { $$ = new Definitions; }
+alternatives
+    : def '|' alternatives  { $$ = $3;               $$->prepend(std::move(*$1)); }
+    | def                   { $$ = new Alternatives; $$->prepend(std::move(*$1)); }
+    | /* empty */           { $$ = new Alternatives; }
     ;
 
     def : term def          { $$ = $2; $$->prepend(std::unique_ptr<Term>($1)); }

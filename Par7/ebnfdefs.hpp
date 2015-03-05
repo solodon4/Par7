@@ -1,9 +1,12 @@
 #pragma once
 
-#include <iostream>
+#include <iostream>     // std::clog for bison printer
 #include <string>
-#include <tuple>
-#include <vector>
+#include <iterator>     // std::ostream_iterator
+#include <vector>       // std::vector
+#include <algorithm>    // std::copy
+
+//------------------------------------------------------------------------------
 
 template <typename T, typename A, typename U>
 void prepend_to(std::vector<T,A>& v, U&& u)
@@ -14,12 +17,29 @@ void prepend_to(std::vector<T,A>& v, U&& u)
         v.emplace(v.begin(),std::move(u));
 }
 
+//------------------------------------------------------------------------------
+
+template <typename T, typename A>
+std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, const char* separator)
+{
+    if (!v.empty())
+    {
+        std::ostream_iterator<T> out_it(os, separator);
+        std::copy(v.begin(), v.end()-1, out_it);
+        os << v.back();
+    }
+
+    return os;
+}
+
 //==============================================================================
 // Forward declarations
 //==============================================================================
 
 // To disable Clang's deprecation warning
 #define register
+
+//------------------------------------------------------------------------------
 
 struct Term : std::string
 {
@@ -30,9 +50,15 @@ struct Term : std::string
     friend std::ostream& operator<<(std::ostream& os, const Term& t) { return os << t.text(); }
 };
 
+//------------------------------------------------------------------------------
+
 struct Terminal    : Term { using Term::Term;    Terminal(const std::string& s) : Term(s) {} };
 
+//------------------------------------------------------------------------------
+
 struct NonTerminal : Term { using Term::Term; NonTerminal(const std::string& s) : Term(s) {} };
+
+//------------------------------------------------------------------------------
 
 struct Def  : std::vector<std::unique_ptr<Term>>
 {
@@ -47,35 +73,37 @@ struct Def  : std::vector<std::unique_ptr<Term>>
     }
 };
 
-struct Definitions : std::vector<Def>
+//------------------------------------------------------------------------------
+
+struct Alternatives : std::vector<Def>
 {
     using std::vector<Def>::vector;
 
     void prepend(Def&& d) { prepend_to(static_cast<std::vector<Def>&>(*this), d); }
 
-    friend std::ostream& operator<<(std::ostream& os, const Definitions& defs)
+    friend std::ostream& operator<<(std::ostream& os, const Alternatives& alts)
     {
-        os << " | ";
-        for (const auto& d : defs) os << d << '\n';
-        return os;
+        return separated_output(os, alts, " |");
     }
 };
 
-struct Rule : Definitions
+//------------------------------------------------------------------------------
+
+struct Rule : Alternatives
 {
     std::string nonterminal;
-    Rule(std::string&& s, Definitions&& d)
+    Rule(std::string&& s, Alternatives&& a)
         : nonterminal(std::move(s))
-        , Definitions(std::move(d))
+        , Alternatives(std::move(a))
     {}
 
     friend std::ostream& operator<<(std::ostream& os, const Rule& r)
     {
-        os << r.nonterminal << " -> ";
-        for (const auto& a : r) os << a;
-        return os;
+        return os << r.nonterminal << " \t= " << (const Alternatives&)r << " ;";
     }
 };
+
+//------------------------------------------------------------------------------
 
 struct Syntax : std::vector<Rule>
 {
@@ -85,7 +113,8 @@ struct Syntax : std::vector<Rule>
 
     friend std::ostream& operator<<(std::ostream& os, const Syntax& s)
     {
-        for (const auto& r : s) os << r << '\n';
-        return os;
+        return separated_output(os, s, "\n");
     }
 };
+
+//------------------------------------------------------------------------------
