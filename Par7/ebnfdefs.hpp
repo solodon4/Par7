@@ -3,6 +3,7 @@
 #include <iostream>     // std::clog for bison printer
 #include <string>
 #include <iterator>     // std::ostream_iterator
+#include <set>          // std::set
 #include <vector>       // std::vector
 #include <algorithm>    // std::copy
 
@@ -27,6 +28,20 @@ std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, cons
         std::ostream_iterator<T> out_it(os, separator);
         std::copy(v.begin(), v.end()-1, out_it);
         os << v.back();
+    }
+
+    return os;
+}
+
+//------------------------------------------------------------------------------
+
+template <typename T, typename A>
+std::ostream& separated_output(std::ostream& os, const std::set<T,A>& v, const char* separator)
+{
+    if (!v.empty())
+    {
+        std::ostream_iterator<T> out_it(os, separator);
+        std::copy(v.begin(), v.end(), out_it);
     }
 
     return os;

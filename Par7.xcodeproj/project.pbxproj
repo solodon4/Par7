@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9739F6F81AAEBFAD00D1BE06 /* first.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9739F6F71AAEBFAD00D1BE06 /* first.cpp */; };
 		977CA7811A18214700A01424 /* ebnfparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 977CA77C1A18214700A01424 /* ebnfparser.cpp */; };
 		977CA7891A18414A00A01424 /* ebnf.l in Sources */ = {isa = PBXBuildFile; fileRef = 977CA7871A18414A00A01424 /* ebnf.l */; };
 		977CA78A1A18414A00A01424 /* ebnf.y in Sources */ = {isa = PBXBuildFile; fileRef = 977CA7881A18414A00A01424 /* ebnf.y */; };
@@ -72,6 +73,7 @@
 
 /* Begin PBXFileReference section */
 		9739F6F61AA4378D00D1BE06 /* utf-8-reader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "utf-8-reader.hpp"; sourceTree = "<group>"; };
+		9739F6F71AAEBFAD00D1BE06 /* first.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = first.cpp; sourceTree = "<group>"; };
 		977CA76F1A181C7100A01424 /* Par7 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Par7; sourceTree = BUILT_PRODUCTS_DIR; };
 		977CA77B1A18214700A01424 /* ebnfdefs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ebnfdefs.hpp; sourceTree = "<group>"; };
 		977CA77C1A18214700A01424 /* ebnfparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ebnfparser.cpp; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				977CA77C1A18214700A01424 /* ebnfparser.cpp */,
 				977CA77D1A18214700A01424 /* Makefile */,
 				977CA77E1A18214700A01424 /* ypp.sed */,
+				9739F6F71AAEBFAD00D1BE06 /* first.cpp */,
 			);
 			path = Par7;
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 			files = (
 				977CA7811A18214700A01424 /* ebnfparser.cpp in Sources */,
 				977CA7891A18414A00A01424 /* ebnf.l in Sources */,
+				9739F6F81AAEBFAD00D1BE06 /* first.cpp in Sources */,
 				977CA78A1A18414A00A01424 /* ebnf.y in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

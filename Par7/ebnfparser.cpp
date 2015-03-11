@@ -118,6 +118,9 @@ int main(int argc, char* argv[])
         {
             assert(grammar); // Must be valid object after successful parsing
             std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
+            std::cout << "Non terminals:" << std::endl;
+            extern std::set<std::string> nonterminals(const Syntax&);
+            separated_output(std::cout, nonterminals(*grammar), ",");
         }
 
         return result;
