@@ -1,0 +1,3 @@
+Expr = ["+"|"-"] Term {("+"|"-") Term}
+Term = Factor {("*"|"/") Factor}
+Factor = ident | number | "(" Expr ")"
