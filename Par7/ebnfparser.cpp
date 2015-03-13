@@ -65,7 +65,7 @@ Syntax* grammar = nullptr;
 int main(int argc, char* argv[])
 {
     yydebug = 1;       // disable Yacc debugging mode
-    yy_flex_debug = 1; // disable Flex debugging mode
+    //yy_flex_debug = 1; // disable Flex debugging mode
     std::string base_name = "undefined";
 
     try

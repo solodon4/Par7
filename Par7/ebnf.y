@@ -52,7 +52,7 @@ void yyerror(const char *str)
 %type  <m_rule>        rule
 %type  <m_syntax>      syntax
 
-%printer    { std::clog << $$; } ID STR
+%printer    { std::clog << $$/* << ':' << *yylval.m_str*/; } ID STR
 %destructor { delete $$; } ID STR
 
 %%
