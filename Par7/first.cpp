@@ -62,9 +62,30 @@ std::set<std::string> nonterminals(const Syntax& grammar)
     return result;
 }
 
-std::set<const Terminal*> first(const Def& def)
+std::set<const Terminal*> first(const Def& def, const std::map<std::string, std::set<const Terminal*>>& current)
 {
-    return std::set<const Terminal*>();
+    std::set<const Terminal*> result;
+
+    for (const auto& x : def)
+    {
+        if (const Terminal* t = dynamic_cast<const Terminal*>(x.get()))
+        {
+            result.insert(t);
+        }
+        else
+        if (const NonTerminal* n = dynamic_cast<const NonTerminal*>(x.get()))
+        {
+            const std::string& name = *n;
+            std::map<std::string, std::set<const Terminal*>>::const_iterator p = current.find(name);
+            if (p != current.end())
+            {
+                const std::set<const Terminal*>& s = p->second;
+                result.insert(s.begin(), s.end());
+            }
+        }
+    }
+
+    return result;
 }
 
 std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar)
@@ -83,7 +104,7 @@ std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar)
         {
             for (const auto& def : static_cast<const Alternatives&>(rule))
             {
-                std::set<const Terminal*> f = first(def);
+                std::set<const Terminal*> f = first(def,result);
             }
         }
     }
