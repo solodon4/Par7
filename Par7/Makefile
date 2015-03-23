@@ -67,7 +67,7 @@ OBJECTS = ${SOURCES:.cpp=.o}
 DEP_FILES = $(SOURCES:.cpp=.dep)
 
 # Setting .SECONDARY to blank disables deletion of intermediate files by make
-#.SECONDARY:
+.SECONDARY:
 
 #include $(DEP_FILES)
 
