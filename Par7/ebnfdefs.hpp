@@ -133,3 +133,46 @@ struct Syntax : std::vector<Rule>
 };
 
 //------------------------------------------------------------------------------
+
+template <typename T>
+class polymorphic
+{
+private:
+
+    std::unique_ptr<T> ptr;
+
+public:
+
+    template <typename... U>
+    polymorphic(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
+
+    template <typename U> bool operator< (U&& u) const { return *ptr <  u; }
+    template <typename U> bool operator==(U&& u) const { return *ptr == u; }
+
+
+};
+
+struct Production
+{
+    std::unique_ptr<NonTerminal>       lhs;
+    std::vector<std::unique_ptr<Term>> rhs;
+};
+
+struct Grammar
+{
+    NonTerminal* nonterminal(const char* name);
+       Terminal*    terminal(const char* name);
+
+    std::set<polymorphic<NonTerminal>> nonterminals;
+    std::set<polymorphic<   Terminal>>    terminals;
+};
+
+inline NonTerminal* Grammar::nonterminal(const char* name)
+{
+    return nullptr;
+}
+
+inline Terminal*    Grammar::terminal(const char* name)
+{
+    return nullptr;
+}

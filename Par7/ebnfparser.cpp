@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
             std::cout << "Non terminals:" << std::endl;
             extern std::set<std::string> nonterminals(const Syntax&);
             separated_output(std::cout, nonterminals(*grammar), ",");
-            extern std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar);
-            auto firstsets = first(*grammar);
+//            extern std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar);
+//            auto firstsets = first(*grammar);
         }
 
         return result;
