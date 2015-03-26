@@ -62,6 +62,7 @@ struct Term : std::string
     virtual ~Term() {}
     Term(const std::string& s) : std::string(s) {}
     const std::string& text() const { return *this; }
+    bool operator<(const Term& t) const { return text() < t.text(); }
     friend std::ostream& operator<<(std::ostream& os, const Term& t) { return os << t.text(); }
 };
 
@@ -143,20 +144,31 @@ private:
 
 public:
 
+    polymorphic(polymorphic&& v) : ptr(std::move(v.ptr)) {}
+
     template <typename... U>
     polymorphic(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
 
-    template <typename U> bool operator< (U&& u) const { return *ptr <  u; }
-    template <typename U> bool operator==(U&& u) const { return *ptr == u; }
+    template <typename U>
+    bool operator< (U&& u) const { return *ptr <  std::forward<U>(u); }
+    bool operator< (const polymorphic& v) const { return *ptr < *v.ptr; }
 
+    template <typename U>
+    bool operator==(U&& u) const { return *ptr == std::forward<U>(u); }
+    bool operator==(const polymorphic& v) const { return *ptr == *v.ptr; }
 
+    T* pointer() const { return ptr.get(); }
 };
+
+//------------------------------------------------------------------------------
 
 struct Production
 {
     std::unique_ptr<NonTerminal>       lhs;
     std::vector<std::unique_ptr<Term>> rhs;
 };
+
+//------------------------------------------------------------------------------
 
 struct Grammar
 {
@@ -169,10 +181,12 @@ struct Grammar
 
 inline NonTerminal* Grammar::nonterminal(const char* name)
 {
-    return nullptr;
+    auto x = nonterminals.insert(polymorphic<NonTerminal>(name));
+    return x.first->pointer();
 }
 
 inline Terminal*    Grammar::terminal(const char* name)
 {
-    return nullptr;
+    auto x = terminals.insert(polymorphic<Terminal>(name));
+    return x.first->pointer();
 }
