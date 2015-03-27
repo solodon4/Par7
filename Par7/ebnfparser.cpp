@@ -59,7 +59,7 @@
 extern int yyparse(void);
 extern int yy_flex_debug;
 extern int yydebug;
-Syntax* grammar = nullptr;
+Grammar* grammar = nullptr;
 
 //------------------------------------------------------------------------------
 
@@ -118,12 +118,17 @@ int main(int argc, char* argv[])
         if (result == 0)
         {
             assert(grammar); // Must be valid object after successful parsing
-            std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
+            //std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
             std::cout << "Non terminals:" << std::endl;
-            extern std::set<std::string> nonterminals(const Syntax&);
-            separated_output(std::cout, nonterminals(*grammar), ",");
+            //extern std::set<std::string> nonterminals(const Syntax&);
+            //separated_output(std::cout, nonterminals(*grammar), ",");
 //            extern std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar);
 //            auto firstsets = first(*grammar);
+
+            Grammar g;
+            g.terminal("a");
+            g.nonterminal("b");
+
         }
 
         return result;

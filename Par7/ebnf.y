@@ -17,6 +17,7 @@ void yyerror(const char *str)
     cerr << "error[" << g_line << "]: " << str << endl;
     cerr << "before symbol: " << yytext << endl;
 }
+extern Grammar* grammar;
 
 /* Enabling traces.  */
 #define YYDEBUG 1
@@ -33,52 +34,43 @@ void yyerror(const char *str)
     //    YYSTYPE() { new(&m_term) Term(); }  // FIX: try to make this work without keeping pointers only
     //    ~YYSTYPE();
     //    YYSTYPE& operator=(const YYSTYPE&);
-    Term*         m_term;
-    Def*          m_def;
-    Alternatives* m_alt;
-    Rule*         m_rule;
-    Syntax*       m_syntax;
-    std::string*  m_str;
-    int           m_int;
+    std::string*                               m_str;
+    Term*                                      m_term;
+    std::vector<polymorphic<nonowning<Term>>>* m_terms;
+    Production*                                m_production;
+    Grammar*                                   m_grammar;
 }
 
-%start syntax
+%start grammar
 
 %token <m_str> ID "identifier"
 %token <m_str> STR "string"
 %type  <m_term> term
-%type  <m_def>  def
-%type  <m_alt>  alternatives
-%type  <m_rule>        rule
-%type  <m_syntax>      syntax
+%type  <m_terms> terms
+%type  <m_production>  production
+%type  <m_grammar>     grammar
 
 %printer    { std::clog << $$/* << ':' << *yylval.m_str*/; } ID STR
 %destructor { delete $$; } ID STR
 
 %%
 
-syntax
-    : syntax rule           { $$ = $1; $$->emplace_back(std::move(*$2)); }
-    | /* empty */           { extern Syntax* grammar; grammar = $$ = new Syntax; }
+grammar
+    : grammar production    { $$ = $1; $$->append(std::move(*$2)); }
+    | /* empty */           { grammar = $$ = new Grammar; }
 	;
 
-rule
-    : ID '=' alternatives ';' { $$ = new Rule(std::move(*$1), std::move(*$3)); }
+production
+    : ID '=' terms ';'      { $$ = new Production(std::move(*$1), std::move(*$3)); delete $3; }
 	;
 
-alternatives
-    : def '|' alternatives  { $$ = $3;               $$->prepend(std::move(*$1)); }
-    | def                   { $$ = new Alternatives; $$->prepend(std::move(*$1)); }
-    | /* empty */           { $$ = new Alternatives; }
-    ;
-
-    def : term def          { $$ = $2; $$->prepend(std::unique_ptr<Term>($1)); }
-    | /* empty */           { $$ = new Def; }
+    terms : term terms      { $$ = $2; prepend_to(*$2, polymorphic<nonowning<Term>>(std::move($1))); }
+    | /* empty */           { $$ = new std::vector<polymorphic<nonowning<Term>>>; }
     ;
 
 term
-    : ID                    { $$ = new NonTerminal(*$1); }
-    | STR                   { $$ = new    Terminal(*$1); }
+    : ID                    { $$ = grammar->nonterminal($1->c_str()); }
+    | STR                   { $$ = grammar->terminal($1->c_str()); }
     ;
 
 %%

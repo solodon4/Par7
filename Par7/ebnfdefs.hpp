@@ -6,6 +6,7 @@
 #include <set>          // std::set
 #include <vector>       // std::vector
 #include <algorithm>    // std::copy
+#include <map>
 
 //------------------------------------------------------------------------------
 
@@ -136,36 +137,80 @@ struct Syntax : std::vector<Rule>
 //------------------------------------------------------------------------------
 
 template <typename T>
-class polymorphic
+class owning
 {
-private:
 
     std::unique_ptr<T> ptr;
 
 public:
 
-    polymorphic(polymorphic&& v) : ptr(std::move(v.ptr)) {}
+    typedef T value_type;
+
+    owning(owning&& v) : ptr(std::move(v.ptr)) {}
 
     template <typename... U>
-    polymorphic(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
-
-    template <typename U>
-    bool operator< (U&& u) const { return *ptr <  std::forward<U>(u); }
-    bool operator< (const polymorphic& v) const { return *ptr < *v.ptr; }
-
-    template <typename U>
-    bool operator==(U&& u) const { return *ptr == std::forward<U>(u); }
-    bool operator==(const polymorphic& v) const { return *ptr == *v.ptr; }
+    owning(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
 
     T* pointer() const { return ptr.get(); }
+    
+};
+
+//------------------------------------------------------------------------------
+
+template <typename T>
+class nonowning
+{
+
+    T* ptr;
+
+public:
+
+    typedef T value_type;
+
+    nonowning(const nonowning& v) : ptr(v.ptr) {}
+    nonowning(nonowning&& v) : ptr(std::move(v.ptr)) {}
+
+    nonowning(T*&& v) : ptr(std::move(v)) {}
+
+    nonowning& operator=(const nonowning& v) { ptr = v.ptr; return *this; }
+
+    T* pointer() const { return ptr; }
+
+};
+
+//------------------------------------------------------------------------------
+
+template <typename Ptr>
+struct polymorphic : Ptr
+{
+    using Ptr::Ptr;
+    using typename Ptr::value_type;
+
+    value_type& value() const { return *this->pointer(); }
+
+
+    template <typename U>
+    bool operator< (U&& u) const { return value() <  std::forward<U>(u); }
+    bool operator< (const polymorphic& v) const { return value() < v.value(); }
+
+    template <typename U>
+    bool operator==(U&& u) const { return value() == std::forward<U>(u); }
+    bool operator==(const polymorphic& v) const { return value() == v.value(); }
 };
 
 //------------------------------------------------------------------------------
 
 struct Production
 {
-    std::unique_ptr<NonTerminal>       lhs;
-    std::vector<std::unique_ptr<Term>> rhs;
+    polymorphic<nonowning<NonTerminal>>       lhs;
+    std::vector<polymorphic<nonowning<Term>>> rhs;
+
+    Production(
+        polymorphic<nonowning<NonTerminal>>&&       l,
+        std::vector<polymorphic<nonowning<Term>>>&& r)
+    :
+        lhs(std::move(l)), rhs(std::move(r))
+    {}
 };
 
 //------------------------------------------------------------------------------
@@ -174,19 +219,31 @@ struct Grammar
 {
     NonTerminal* nonterminal(const char* name);
        Terminal*    terminal(const char* name);
+    void append(Production&& p);
 
-    std::set<polymorphic<NonTerminal>> nonterminals;
-    std::set<polymorphic<   Terminal>>    terminals;
+private:
+
+    typedef std::multimap<polymorphic<nonowning<NonTerminal>>, Production> productions_map;
+
+    std::set<polymorphic<owning<NonTerminal>>> nonterminals;
+    std::set<polymorphic<owning<   Terminal>>>    terminals;
+    productions_map                             productions;
+
 };
 
 inline NonTerminal* Grammar::nonterminal(const char* name)
 {
-    auto x = nonterminals.insert(polymorphic<NonTerminal>(name));
+    auto x = nonterminals.insert(name);
     return x.first->pointer();
 }
 
 inline Terminal*    Grammar::terminal(const char* name)
 {
-    auto x = terminals.insert(polymorphic<Terminal>(name));
+    auto x = terminals.insert(name);
     return x.first->pointer();
+}
+
+inline void Grammar::append(Production&& p)
+{
+    productions.insert(productions_map::value_type(p.lhs, std::move(p.rhs)));
 }
