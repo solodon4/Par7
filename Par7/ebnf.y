@@ -61,7 +61,7 @@ grammar
 	;
 
 production
-    : ID '=' terms ';'      { $$ = new Production(std::move(*$1), std::move(*$3)); delete $3; }
+    : ID '=' terms ';'      { $$ = new Production(grammar->nonterminal($1->c_str()), std::move(*$3)); delete $3; }
 	;
 
     terms : term terms      { $$ = $2; prepend_to(*$2, polymorphic<nonowning<Term>>(std::move($1))); }
