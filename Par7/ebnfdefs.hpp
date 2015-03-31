@@ -90,91 +90,15 @@ std::ostream& separated_output(std::ostream& os, const std::set<T,A>& v, const c
     return os;
 }
 
-//==============================================================================
-// Forward declarations
-//==============================================================================
-
-// To disable Clang's deprecation warning
-#define register
-
 //------------------------------------------------------------------------------
 
-struct Symbol : std::string
+template <typename T, typename A>
+std::set<T,A> difference(const std::set<T,A>& a, const std::set<T,A>& b)
 {
-    using std::string::string;
-    virtual ~Symbol() {}
-    Symbol(const std::string& s) : std::string(s) {}
-    const std::string& text() const { return *this; }
-    bool operator<(const Symbol& s) const { return text() < s.text(); }
-    friend std::ostream& operator<<(std::ostream& os, const Symbol& s) { return os << s.text(); }
-};
-
-//------------------------------------------------------------------------------
-
-struct Terminal    : Symbol { using Symbol::Symbol;    Terminal(const std::string& s) : Symbol(s) {} };
-
-//------------------------------------------------------------------------------
-
-struct NonTerminal : Symbol { using Symbol::Symbol; NonTerminal(const std::string& s) : Symbol(s) {} };
-
-//------------------------------------------------------------------------------
-
-struct Def  : std::vector<std::unique_ptr<Symbol>>
-{
-    using std::vector<std::unique_ptr<Symbol>>::vector;
-
-    void prepend(std::unique_ptr<Symbol>&& t) { prepend_to(static_cast<std::vector<std::unique_ptr<Symbol>>&>(*this), t); }
-
-    friend std::ostream& operator<<(std::ostream& os, const Def& d)
-    {
-        for (const auto& p : d) os << ' ' << *p;
-        return os;
-    }
-};
-
-//------------------------------------------------------------------------------
-
-struct Alternatives : std::vector<Def>
-{
-    using std::vector<Def>::vector;
-
-    void prepend(Def&& d) { prepend_to(static_cast<std::vector<Def>&>(*this), d); }
-
-    friend std::ostream& operator<<(std::ostream& os, const Alternatives& alts)
-    {
-        return separated_output(os, alts, " |");
-    }
-};
-
-//------------------------------------------------------------------------------
-
-struct Rule : Alternatives
-{
-    std::string nonterminal;
-    Rule(std::string&& s, Alternatives&& a)
-        : nonterminal(std::move(s))
-        , Alternatives(std::move(a))
-    {}
-
-    friend std::ostream& operator<<(std::ostream& os, const Rule& r)
-    {
-        return os << r.nonterminal << " \t= " << (const Alternatives&)r << " ;";
-    }
-};
-
-//------------------------------------------------------------------------------
-
-struct Syntax : std::vector<Rule>
-{
-    using std::vector<Rule>::vector;
-
-    void prepend(Rule&& r) { prepend_to(static_cast<std::vector<Rule>&>(*this), r); }
-
-    friend std::ostream& operator<<(std::ostream& os, const Syntax& s)
-    {
-        return separated_output(os, s, "\n");
-    }
-};
+    std::set<T,A> result;
+    std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::inserter(result, result.begin()));
+    return result;
+}
 
 //------------------------------------------------------------------------------
 
@@ -194,7 +118,7 @@ public:
     owning(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
 
     T* pointer() const { return ptr.get(); }
-    
+
 };
 
 //------------------------------------------------------------------------------
@@ -213,6 +137,7 @@ public:
     nonowning(nonowning&& v) : ptr(std::move(v.ptr)) {}
 
     nonowning(T*&& v) : ptr(std::move(v)) {}
+    nonowning(const owning<T>& v) : ptr(v.pointer()) {}
 
     nonowning& operator=(const nonowning& v) { ptr = v.ptr; return *this; }
 
@@ -239,11 +164,41 @@ struct polymorphic : Ptr
     bool operator==(U&& u) const { return value() == std::forward<U>(u); }
     bool operator==(const polymorphic& v) const { return value() == v.value(); }
 
+    const value_type* operator&() const { return this->pointer(); }
+    value_type* operator&()       { return this->pointer(); }
+
     friend std::ostream& operator<<(std::ostream& os, const polymorphic& p)
     {
         return os << *p.pointer();
     }
 };
+
+//==============================================================================
+// Forward declarations
+//==============================================================================
+
+// To disable Clang's deprecation warning
+#define register
+
+//------------------------------------------------------------------------------
+
+struct Symbol : std::string
+{
+    using std::string::string;
+    virtual ~Symbol() {}
+    Symbol(const std::string& s) : std::string(s) {}
+    const std::string& text() const { return *this; }
+    bool operator<(const Symbol& s) const { return text() < s.text(); }
+    friend std::ostream& operator<<(std::ostream& os, const Symbol& s) { return os << s.text(); }
+};
+
+//------------------------------------------------------------------------------
+
+struct Terminal    : Symbol { using Symbol::Symbol;    Terminal(const std::string& s) : Symbol(s) {} };
+
+//------------------------------------------------------------------------------
+
+struct NonTerminal : Symbol { using Symbol::Symbol; NonTerminal(const std::string& s) : Symbol(s) {} };
 
 //------------------------------------------------------------------------------
 
@@ -276,8 +231,18 @@ struct Production
 
 struct Grammar
 {
+    typedef std::multimap<non_terminal, Production> productions_map;
+    typedef polymorphic<owning<NonTerminal>>       non_terminal_own;
+    typedef polymorphic<owning<   Terminal>>           terminal_own;
+
     NonTerminal* nonterminal(const char* name);
        Terminal*    terminal(const char* name);
+
+    std::set<non_terminal> nonterminals() const;
+
+    const productions_map& productions() const { return m_productions; }
+          productions_map& productions()       { return m_productions; }
+
     void append(Production&& p);
 
     friend std::ostream& operator<<(std::ostream& os, const Grammar& r)
@@ -288,11 +253,9 @@ struct Grammar
 
 private:
 
-    typedef std::multimap<non_terminal, Production> productions_map;
-
-    std::set<polymorphic<owning<NonTerminal>>> m_nonterminals;
-    std::set<polymorphic<owning<   Terminal>>>    m_terminals;
-    productions_map                             m_productions;
+    std::set<non_terminal_own> m_nonterminals;
+    std::set<    terminal_own> m_terminals;
+    productions_map            m_productions;
 
 };
 
@@ -306,6 +269,12 @@ inline Terminal*    Grammar::terminal(const char* name)
 {
     auto x = m_terminals.insert(name);
     return x.first->pointer();
+}
+
+inline std::set<non_terminal> Grammar::nonterminals() const
+{
+    std::set<non_terminal> result(m_nonterminals.begin(), m_nonterminals.end());
+    return result;
 }
 
 inline void Grammar::append(Production&& p)

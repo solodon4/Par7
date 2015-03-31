@@ -1,72 +1,129 @@
 //
-//  first.cpp
-//  Par7
+//  Par7: Parser Generator Library for C++
 //
-//  Created by Yuriy Solodkyy on 3/9/15.
-//  Copyright (c) 2015 CrowdsTech. All rights reserved.
+//  Copyright 2015 Yuriy Solodkyy.
+//  All rights reserved.
 //
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//      * Redistributions of source code must retain the above copyright
+//        notice, this list of conditions and the following disclaimer.
+//
+//      * Redistributions in binary form must reproduce the above copyright
+//        notice, this list of conditions and the following disclaimer in the
+//        documentation and/or other materials provided with the distribution.
+//
+//      * Neither the names of Mach7 project nor the names of its contributors
+//        may be used to endorse or promote products derived from this software
+//        without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY
+//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+///
+/// \file
+///
+/// This file defines some functions to work with sets of symbols in the grammar.
+///
+/// \author Yuriy Solodkyy <yuriy.solodkyy@gmail.com>
+///
+/// \see https://github.com/solodon4/Par7
+/// \see https://github.com/solodon4/SELL
+///
 
 #include <map>
 #include <set>
 #include <string>
 #include "ebnfdefs.hpp"
 
-std::set<std::string> nonterminals(const Symbol& term)
-{
-    std::set<std::string> result;
+//------------------------------------------------------------------------------
 
-    if (dynamic_cast<const NonTerminal*>(&term))
+std::set<non_terminal> rhs_nonterminals(symbol& s)
+{
+    std::set<non_terminal> result;
+
+    if (NonTerminal* nt = dynamic_cast<NonTerminal*>(&s))
     {
-        result.insert(term);
+        result.insert(non_terminal(std::move(nt)));
     }
 
     return result;
 }
 
-std::set<std::string> nonterminals(const Def& def)
+std::set<non_terminal> rhs_nonterminals(Production& p)
 {
-    std::set<std::string> result;
+    std::set<non_terminal> result;
 
-    for (const auto& term : def)
+    for (auto& s : p.rhs)
     {
-        std::set<std::string> tmp = nonterminals(*term);
+        std::set<non_terminal> tmp = rhs_nonterminals(s);
         result.insert(tmp.begin(), tmp.end());
     }
 
     return result;
 }
 
-std::set<std::string> nonterminals(const Alternatives& alt)
+std::set<non_terminal> rhs_nonterminals(Grammar& grammar)
 {
-    std::set<std::string> result;
-    return result;
-}
+    std::set<non_terminal> result;
 
-std::set<std::string> nonterminals(const Rule& rule)
-{
-    std::set<std::string> result = nonterminals(static_cast<const Alternatives&>(rule));
-    result.insert(rule.nonterminal);
-    return result;
-}
-
-std::set<std::string> nonterminals(const Syntax& grammar)
-{
-    std::set<std::string> result;
-
-    for (const auto& rule : grammar)
+    for (auto& p : grammar.productions())
     {
-        std::set<std::string> tmp = nonterminals(rule);
+        std::set<non_terminal> tmp = rhs_nonterminals(p.second);
         result.insert(tmp.begin(), tmp.end());
     }
 
     return result;
 }
 
-std::set<const Terminal*> first(const Def& def, const std::map<std::string, std::set<const Terminal*>>& current)
-{
-    std::set<const Terminal*> result;
+//------------------------------------------------------------------------------
 
-    for (const auto& x : def)
+std::set<non_terminal> lhs_nonterminals(Grammar& grammar)
+{
+    std::set<non_terminal> result;
+
+    for (auto& p : grammar.productions())
+    {
+        result.insert(p.first);
+    }
+
+    return result;
+}
+
+//------------------------------------------------------------------------------
+
+std::set<non_terminal> empty_nonterminals(Grammar& grammar)
+{
+    std::set<non_terminal> result;
+
+    for (auto& p : grammar.productions())
+    {
+        if (p.second.rhs.empty())
+        {
+            result.insert(p.second.lhs);
+        }
+    }
+
+    return result;
+}
+
+//------------------------------------------------------------------------------
+
+/*
+std::set<terminal> first(const Production& p, const std::map<non_terminal, std::set<terminal>>& current)
+{
+    std::set<terminal> result;
+
+    for (const auto& x : p.rhs)
     {
         if (const Terminal* t = dynamic_cast<const Terminal*>(x.get()))
         {
@@ -91,7 +148,7 @@ std::set<const Terminal*> first(const Def& def, const std::map<std::string, std:
 std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar)
 {
     std::map<std::string, std::set<const Terminal*>> result;
-    std::set<std::string> keys = nonterminals(grammar);
+    std::set<std::string> keys = rhs_nonterminals(grammar);
 
     for (const auto& n : keys)
     {
@@ -111,3 +168,5 @@ std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar)
 
     return result;
 }
+*/
+//------------------------------------------------------------------------------

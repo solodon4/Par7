@@ -117,16 +117,27 @@ int main(int argc, char* argv[])
         {
             assert(grammar); // Must be valid object after successful parsing
             std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
-            std::cout << "Non terminals:" << std::endl;
-            //extern std::set<std::string> nonterminals(const Syntax&);
-            //separated_output(std::cout, nonterminals(*grammar), ",");
+
+            extern std::set<non_terminal> rhs_nonterminals(Grammar&);
+
+            std::cout << std::endl << "RHS non-terminals: ";
+            std::set<non_terminal> rhs_nt = rhs_nonterminals(*grammar);
+            separated_output(std::cout, rhs_nt, ",");
+
+            extern std::set<non_terminal> lhs_nonterminals(Grammar&);
+
+            std::cout << std::endl << "LHS non-terminals: ";
+            std::set<non_terminal> lhs_nt = lhs_nonterminals(*grammar);
+            separated_output(std::cout, lhs_nt, ",");
+
+            std::cout << std::endl << "Undefined non-terminals: ";
+            separated_output(std::cout, difference(rhs_nt, lhs_nt), ",");
+
+            std::cout << std::endl << "Empty non-terminals: ";
+            extern std::set<non_terminal> empty_nonterminals(Grammar& grammar);
+            separated_output(std::cout, empty_nonterminals(*grammar), ",");
 //            extern std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar);
 //            auto firstsets = first(*grammar);
-
-            Grammar g;
-            g.terminal("a");
-            g.nonterminal("b");
-
         }
 
         return result;
