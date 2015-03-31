@@ -31,22 +31,22 @@ extern Grammar* grammar;
 
 %union
 {
-    //    YYSTYPE() { new(&m_term) Term(); }  // FIX: try to make this work without keeping pointers only
+    //    YYSTYPE() { new(&m_term) Symbol(); }  // FIX: try to make this work without keeping pointers only
     //    ~YYSTYPE();
     //    YYSTYPE& operator=(const YYSTYPE&);
-    std::string*                               m_str;
-    Term*                                      m_term;
-    std::vector<polymorphic<nonowning<Term>>>* m_terms;
-    Production*                                m_production;
-    Grammar*                                   m_grammar;
+    std::string*                                 m_str;
+    Symbol*                                      m_term;
+    std::vector<polymorphic<nonowning<Symbol>>>* m_terms;
+    Production*                                  m_production;
+    Grammar*                                     m_grammar;
 }
 
 %start grammar
 
-%token <m_str> ID "identifier"
-%token <m_str> STR "string"
-%type  <m_term> term
-%type  <m_terms> terms
+%token <m_str>         ID "identifier"
+%token <m_str>         STR "string"
+%type  <m_term>        term
+%type  <m_terms>       terms
 %type  <m_production>  production
 %type  <m_grammar>     grammar
 
@@ -64,8 +64,8 @@ production
     : ID '=' terms ';'      { $$ = new Production(grammar->nonterminal($1->c_str()), std::move(*$3)); delete $3; }
 	;
 
-    terms : term terms      { $$ = $2; prepend_to(*$2, polymorphic<nonowning<Term>>(std::move($1))); }
-    | /* empty */           { $$ = new std::vector<polymorphic<nonowning<Term>>>; }
+    terms : term terms      { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
+    | /* empty */           { $$ = new std::vector<symbol>; }
     ;
 
 term

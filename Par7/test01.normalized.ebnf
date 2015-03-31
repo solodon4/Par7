@@ -1,0 +1,10 @@
+Expr   = AddOp Term ;
+Expr   = Expr AddOp Term ;
+Term   = Factor MulOp Factor ;
+Factor = ident ;
+Factor = number ;
+Factor = "(" Expr ")" ;
+AddOp  = "+" ;
+AddOp  = "-" ;
+MulOp  = "*" ;
+MulOp  = "/" ;

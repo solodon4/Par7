@@ -11,7 +11,7 @@
 #include <string>
 #include "ebnfdefs.hpp"
 
-std::set<std::string> nonterminals(const Term& term)
+std::set<std::string> nonterminals(const Symbol& term)
 {
     std::set<std::string> result;
 

@@ -1,8 +1,7 @@
 //
-//  Mach7: Pattern Matching Library for C++
+//  Par7: Parser Generator Library for C++
 //
-//  Copyright 2011-2013, Texas A&M University.
-//  Copyright 2014 Yuriy Solodkyy.
+//  Copyright 2015 Yuriy Solodkyy.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,12 +32,11 @@
 ///
 /// \file
 ///
-/// This file is a part of Mach7 library test suite.
+/// This file defines main entry point to EBNF parser.
 ///
 /// \author Yuriy Solodkyy <yuriy.solodkyy@gmail.com>
 ///
-/// \see https://parasol.tamu.edu/mach7/
-/// \see https://github.com/solodon4/Mach7
+/// \see https://github.com/solodon4/Par7
 /// \see https://github.com/solodon4/SELL
 ///
 
@@ -118,7 +116,7 @@ int main(int argc, char* argv[])
         if (result == 0)
         {
             assert(grammar); // Must be valid object after successful parsing
-            //std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
+            std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
             std::cout << "Non terminals:" << std::endl;
             //extern std::set<std::string> nonterminals(const Syntax&);
             //separated_output(std::cout, nonterminals(*grammar), ",");

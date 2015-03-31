@@ -1,3 +1,45 @@
+//
+//  Par7: Parser Generator Library for C++
+//
+//  Copyright 2015 Yuriy Solodkyy.
+//  All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//      * Redistributions of source code must retain the above copyright
+//        notice, this list of conditions and the following disclaimer.
+//
+//      * Redistributions in binary form must reproduce the above copyright
+//        notice, this list of conditions and the following disclaimer in the
+//        documentation and/or other materials provided with the distribution.
+//
+//      * Neither the names of Mach7 project nor the names of its contributors
+//        may be used to endorse or promote products derived from this software
+//        without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY
+//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+///
+/// \file
+///
+/// This file defines main grammar entities: terminals, non-terminals, productions and grammar.
+///
+/// \author Yuriy Solodkyy <yuriy.solodkyy@gmail.com>
+///
+/// \see https://github.com/solodon4/Par7
+/// \see https://github.com/solodon4/SELL
+///
+
 #pragma once
 
 #include <iostream>     // std::clog for bison printer
@@ -57,31 +99,31 @@ std::ostream& separated_output(std::ostream& os, const std::set<T,A>& v, const c
 
 //------------------------------------------------------------------------------
 
-struct Term : std::string
+struct Symbol : std::string
 {
     using std::string::string;
-    virtual ~Term() {}
-    Term(const std::string& s) : std::string(s) {}
+    virtual ~Symbol() {}
+    Symbol(const std::string& s) : std::string(s) {}
     const std::string& text() const { return *this; }
-    bool operator<(const Term& t) const { return text() < t.text(); }
-    friend std::ostream& operator<<(std::ostream& os, const Term& t) { return os << t.text(); }
+    bool operator<(const Symbol& s) const { return text() < s.text(); }
+    friend std::ostream& operator<<(std::ostream& os, const Symbol& s) { return os << s.text(); }
 };
 
 //------------------------------------------------------------------------------
 
-struct Terminal    : Term { using Term::Term;    Terminal(const std::string& s) : Term(s) {} };
+struct Terminal    : Symbol { using Symbol::Symbol;    Terminal(const std::string& s) : Symbol(s) {} };
 
 //------------------------------------------------------------------------------
 
-struct NonTerminal : Term { using Term::Term; NonTerminal(const std::string& s) : Term(s) {} };
+struct NonTerminal : Symbol { using Symbol::Symbol; NonTerminal(const std::string& s) : Symbol(s) {} };
 
 //------------------------------------------------------------------------------
 
-struct Def  : std::vector<std::unique_ptr<Term>>
+struct Def  : std::vector<std::unique_ptr<Symbol>>
 {
-    using std::vector<std::unique_ptr<Term>>::vector;
+    using std::vector<std::unique_ptr<Symbol>>::vector;
 
-    void prepend(std::unique_ptr<Term>&& t) { prepend_to(static_cast<std::vector<std::unique_ptr<Term>>&>(*this), t); }
+    void prepend(std::unique_ptr<Symbol>&& t) { prepend_to(static_cast<std::vector<std::unique_ptr<Symbol>>&>(*this), t); }
 
     friend std::ostream& operator<<(std::ostream& os, const Def& d)
     {
@@ -196,21 +238,38 @@ struct polymorphic : Ptr
     template <typename U>
     bool operator==(U&& u) const { return value() == std::forward<U>(u); }
     bool operator==(const polymorphic& v) const { return value() == v.value(); }
+
+    friend std::ostream& operator<<(std::ostream& os, const polymorphic& p)
+    {
+        return os << *p.pointer();
+    }
 };
+
+//------------------------------------------------------------------------------
+
+typedef polymorphic<nonowning<NonTerminal>> non_terminal;
+typedef polymorphic<nonowning<   Terminal>>     terminal;
+typedef polymorphic<nonowning<Symbol>>            symbol;
 
 //------------------------------------------------------------------------------
 
 struct Production
 {
-    polymorphic<nonowning<NonTerminal>>       lhs;
-    std::vector<polymorphic<nonowning<Term>>> rhs;
+    non_terminal        lhs;
+    std::vector<symbol> rhs;
 
     Production(
-        polymorphic<nonowning<NonTerminal>>&&       l,
-        std::vector<polymorphic<nonowning<Term>>>&& r)
+        non_terminal&&        l,
+        std::vector<symbol>&& r)
     :
         lhs(std::move(l)), rhs(std::move(r))
     {}
+
+    friend std::ostream& operator<<(std::ostream& os, const Production& p)
+    {
+        os << p.lhs << " \t= ";
+        return separated_output(os, p.rhs, " ") << " ;";
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -221,29 +280,35 @@ struct Grammar
        Terminal*    terminal(const char* name);
     void append(Production&& p);
 
+    friend std::ostream& operator<<(std::ostream& os, const Grammar& r)
+    {
+        for (const auto& p : r.m_productions) os << p.second << std::endl;
+        return os;
+    }
+
 private:
 
-    typedef std::multimap<polymorphic<nonowning<NonTerminal>>, Production> productions_map;
+    typedef std::multimap<non_terminal, Production> productions_map;
 
-    std::set<polymorphic<owning<NonTerminal>>> nonterminals;
-    std::set<polymorphic<owning<   Terminal>>>    terminals;
-    productions_map                             productions;
+    std::set<polymorphic<owning<NonTerminal>>> m_nonterminals;
+    std::set<polymorphic<owning<   Terminal>>>    m_terminals;
+    productions_map                             m_productions;
 
 };
 
 inline NonTerminal* Grammar::nonterminal(const char* name)
 {
-    auto x = nonterminals.insert(name);
+    auto x = m_nonterminals.insert(name);
     return x.first->pointer();
 }
 
 inline Terminal*    Grammar::terminal(const char* name)
 {
-    auto x = terminals.insert(name);
+    auto x = m_terminals.insert(name);
     return x.first->pointer();
 }
 
 inline void Grammar::append(Production&& p)
 {
-    productions.insert(productions_map::value_type(p.lhs, std::move(p.rhs)));
+    m_productions.insert(productions_map::value_type(p.lhs, std::move(p)));
 }
