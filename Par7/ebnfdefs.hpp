@@ -136,7 +136,8 @@ public:
     nonowning(const nonowning& v) : ptr(v.ptr) {}
     nonowning(nonowning&& v) : ptr(std::move(v.ptr)) {}
 
-    nonowning(T*&& v) : ptr(std::move(v)) {}
+    nonowning(T*   v) : ptr(v) {}
+    //    nonowning(T*&& v) : ptr(std::move(v)) {}
     nonowning(const owning<T>& v) : ptr(v.pointer()) {}
 
     nonowning& operator=(const nonowning& v) { ptr = v.ptr; return *this; }

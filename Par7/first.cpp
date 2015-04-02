@@ -118,18 +118,18 @@ std::set<non_terminal> empty_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::set<terminal> first(const Production& p, const std::map<non_terminal, std::set<terminal>>& current)
+std::set<terminal> first(Production& p, const std::map<non_terminal, std::set<terminal>>& current)
 {
     std::set<terminal> result;
 
     for (const auto& x : p.rhs)
     {
-        if (const Terminal* t = dynamic_cast<const Terminal*>(x.pointer()))
+        if (Terminal* t = dynamic_cast<Terminal*>(x.pointer()))
         {
-            //result.insert(terminal(t));
+            result.insert(terminal(t));
         }
         else
-        if (const NonTerminal* n = dynamic_cast<const NonTerminal*>(x.pointer()))
+        if (NonTerminal* n = dynamic_cast<NonTerminal*>(x.pointer()))
         {
             std::map<non_terminal, std::set<terminal>>::const_iterator p = current.find(non_terminal(n));
 
