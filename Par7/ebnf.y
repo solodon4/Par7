@@ -102,7 +102,7 @@ production
     : ID '=' terms ';'      { $$ = new Production(grammar->nonterminal($1->c_str()), std::move(*$3)); delete $3; }
 	;
 
-    terms : term terms      { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
+terms : term terms          { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
     | /* empty */           { $$ = new std::vector<symbol>; }
     ;
 

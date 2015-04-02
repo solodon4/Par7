@@ -118,25 +118,24 @@ std::set<non_terminal> empty_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-/*
 std::set<terminal> first(const Production& p, const std::map<non_terminal, std::set<terminal>>& current)
 {
     std::set<terminal> result;
 
     for (const auto& x : p.rhs)
     {
-        if (const Terminal* t = dynamic_cast<const Terminal*>(x.get()))
+        if (const Terminal* t = dynamic_cast<const Terminal*>(x.pointer()))
         {
-            result.insert(t);
+            //result.insert(terminal(t));
         }
         else
-        if (const NonTerminal* n = dynamic_cast<const NonTerminal*>(x.get()))
+        if (const NonTerminal* n = dynamic_cast<const NonTerminal*>(x.pointer()))
         {
-            const std::string& name = *n;
-            std::map<std::string, std::set<const Terminal*>>::const_iterator p = current.find(name);
+            std::map<non_terminal, std::set<terminal>>::const_iterator p = current.find(non_terminal(n));
+
             if (p != current.end())
             {
-                const std::set<const Terminal*>& s = p->second;
+                const std::set<terminal>& s = p->second;
                 result.insert(s.begin(), s.end());
             }
         }
@@ -145,28 +144,25 @@ std::set<terminal> first(const Production& p, const std::map<non_terminal, std::
     return result;
 }
 
-std::map<std::string, std::set<const Terminal*>> first(const Syntax& grammar)
+std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
 {
-    std::map<std::string, std::set<const Terminal*>> result;
-    std::set<std::string> keys = rhs_nonterminals(grammar);
+    std::map<non_terminal, std::set<terminal>> result;
+    std::set<non_terminal> keys = rhs_nonterminals(grammar);
 
     for (const auto& n : keys)
     {
-        result[n] = std::set<const Terminal*>();
+        result[n] = std::set<terminal>();
     }
 
     while (true)
     {
-        for (const auto& rule : grammar)
+        for (auto& p : grammar.productions())
         {
-            for (const auto& def : static_cast<const Alternatives&>(rule))
-            {
-                std::set<const Terminal*> f = first(def,result);
-            }
+            std::set<terminal> f = first(p.second,result);
         }
     }
 
     return result;
 }
-*/
+
 //------------------------------------------------------------------------------
