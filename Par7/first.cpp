@@ -118,17 +118,16 @@ std::set<non_terminal> empty_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::set<terminal> first(Production& p, const std::map<non_terminal, std::set<terminal>>& current)
+std::set<terminal> first(
+                    Production& p,
+                    const std::map<non_terminal, std::set<terminal>>& current,
+                    const std::set<non_terminal>& empty_nt
+                    )
 {
     std::set<terminal> result;
 
     for (const auto& x : p.rhs)
     {
-        if (Terminal* t = dynamic_cast<Terminal*>(x.pointer()))
-        {
-            result.insert(terminal(t));
-        }
-        else
         if (NonTerminal* n = dynamic_cast<NonTerminal*>(x.pointer()))
         {
             std::map<non_terminal, std::set<terminal>>::const_iterator p = current.find(non_terminal(n));
@@ -138,6 +137,17 @@ std::set<terminal> first(Production& p, const std::map<non_terminal, std::set<te
                 const std::set<terminal>& s = p->second;
                 result.insert(s.begin(), s.end());
             }
+
+            if (empty_nt.find(non_terminal(n)) == empty_nt.end())
+            {
+                break;
+            }
+        }
+        else
+        if (Terminal* t = dynamic_cast<Terminal*>(x.pointer()))
+        {
+            result.insert(terminal(t));
+            break;
         }
     }
 
@@ -146,6 +156,7 @@ std::set<terminal> first(Production& p, const std::map<non_terminal, std::set<te
 
 std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
 {
+    const std::set<non_terminal> empty_nt = empty_nonterminals(grammar);
     std::map<non_terminal, std::set<terminal>> result;
     std::set<non_terminal> keys = rhs_nonterminals(grammar);
 
@@ -154,13 +165,25 @@ std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
         result[n] = std::set<terminal>();
     }
 
-    while (true)
+    bool changes = false;
+
+    do
     {
+        changes = false;
+
         for (auto& p : grammar.productions())
         {
-            std::set<terminal> f = first(p.second,result);
+            size_t size_before = result[p.first].size();
+            std::set<terminal> f = first(p.second,result,empty_nt);
+            result[p.first].insert(f.begin(), f.end());
+
+            if (!changes && size_before != result[p.first].size())
+            {
+                changes = true;
+            }
         }
     }
+    while (changes);
 
     return result;
 }

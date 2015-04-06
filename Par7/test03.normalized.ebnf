@@ -1,10 +1,10 @@
 grammar = grammar production ;
 grammar = ;
 
-production = ID "=" terms ";" ;
+production = "ID" "=" terms ";" ;
 
 terms = term terms ;
 terms = ;
 
-term  = ID ;
-term  = STR ;
+term  = "ID" ;
+term  = "STR" ;

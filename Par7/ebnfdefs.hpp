@@ -69,8 +69,7 @@ std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, cons
     if (!v.empty())
     {
         std::ostream_iterator<T> out_it(os, separator);
-        std::copy(v.begin(), v.end()-1, out_it);
-        os << v.back();
+        std::copy(v.begin(), v.end(), out_it);
     }
 
     return os;
@@ -85,6 +84,35 @@ std::ostream& separated_output(std::ostream& os, const std::set<T,A>& v, const c
     {
         std::ostream_iterator<T> out_it(os, separator);
         std::copy(v.begin(), v.end(), out_it);
+    }
+
+    return os;
+}
+
+//------------------------------------------------------------------------------
+
+template <typename T, typename A>
+std::ostream& operator<<(std::ostream& os, const std::set<T,A>& v)
+{
+    os << '{';
+    separated_output(os,v,",");
+    return os << '}';
+}
+
+//------------------------------------------------------------------------------
+
+template <typename K, typename T, typename A>
+std::ostream& separated_output(std::ostream& os, const std::map<K,T,A>& v, const char* separator)
+{
+    if (!v.empty())
+    {
+        bool first = true;
+
+        for (const auto& x : v)
+        {
+            os << (first ? "" : separator) << x.first << " \t-> " << x.second;
+            first = false;
+        }
     }
 
     return os;
