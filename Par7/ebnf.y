@@ -72,11 +72,11 @@ extern Grammar* grammar;
     //    YYSTYPE() { new(&m_term) Symbol(); }  // FIX: try to make this work without keeping pointers only
     //    ~YYSTYPE();
     //    YYSTYPE& operator=(const YYSTYPE&);
-    std::string*                                 m_str;
-    Symbol*                                      m_term;
-    std::vector<polymorphic<nonowning<Symbol>>>* m_terms;
-    Production*                                  m_production;
-    Grammar*                                     m_grammar;
+    std::string*         m_str;
+    Symbol*              m_term;
+    std::vector<symbol>* m_terms;
+    Production*          m_production;
+    Grammar*             m_grammar;
 }
 
 %start grammar
@@ -107,8 +107,8 @@ terms : term terms          { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
     ;
 
 term
-    : ID                    { $$ = grammar->nonterminal($1->c_str()); }
-    | STR                   { $$ = grammar->terminal($1->c_str()); }
+    : ID                    { $$ = grammar->nonterminal($1->c_str()).pointer(); }
+    | STR                   { $$ = grammar->terminal($1->c_str()).pointer(); }
     ;
 
 %%

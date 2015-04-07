@@ -264,8 +264,8 @@ struct Grammar
     typedef polymorphic<owning<NonTerminal>>       non_terminal_own;
     typedef polymorphic<owning<   Terminal>>           terminal_own;
 
-    NonTerminal* nonterminal(const char* name);
-       Terminal*    terminal(const char* name);
+    non_terminal nonterminal(const char* name);
+        terminal    terminal(const char* name);
 
     std::set<non_terminal> nonterminals() const;
 
@@ -285,16 +285,17 @@ private:
     std::set<non_terminal_own> m_nonterminals;
     std::set<    terminal_own> m_terminals;
     productions_map            m_productions;
+    //non_terminal               m_start_symbol;
 
 };
 
-inline NonTerminal* Grammar::nonterminal(const char* name)
+inline non_terminal Grammar::nonterminal(const char* name)
 {
     auto x = m_nonterminals.insert(name);
     return x.first->pointer();
 }
 
-inline Terminal*    Grammar::terminal(const char* name)
+inline     terminal Grammar::terminal(const char* name)
 {
     auto x = m_terminals.insert(name);
     return x.first->pointer();
