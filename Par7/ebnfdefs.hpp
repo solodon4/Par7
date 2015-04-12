@@ -264,8 +264,10 @@ struct Grammar
     typedef polymorphic<owning<NonTerminal>>       non_terminal_own;
     typedef polymorphic<owning<   Terminal>>           terminal_own;
 
-    non_terminal nonterminal(const char* name);
-        terminal    terminal(const char* name);
+    non_terminal get_non_terminal(const char* name);
+        terminal get_terminal(const char* name);
+        terminal epsilon() { return get_terminal(""); }       // We use empty string as epsilon, don't return it as any other token
+        terminal eof()     { return get_terminal("\u0003"); } // We use ETX - End of Text as EOF terminal, don't return it as token!
 
     std::set<non_terminal> nonterminals() const;
 
@@ -289,13 +291,13 @@ private:
 
 };
 
-inline non_terminal Grammar::nonterminal(const char* name)
+inline non_terminal Grammar::get_non_terminal(const char* name)
 {
     auto x = m_nonterminals.insert(name);
     return x.first->pointer();
 }
 
-inline     terminal Grammar::terminal(const char* name)
+inline     terminal Grammar::get_terminal(const char* name)
 {
     auto x = m_terminals.insert(name);
     return x.first->pointer();

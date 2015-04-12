@@ -99,7 +99,7 @@ grammar
 	;
 
 production
-    : ID '=' terms ';'      { $$ = new Production(grammar->nonterminal($1->c_str()), std::move(*$3)); delete $3; }
+    : ID '=' terms ';'      { $$ = new Production(grammar->get_non_terminal($1->c_str()), std::move(*$3)); delete $3; }
 	;
 
 terms : term terms          { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
@@ -107,8 +107,8 @@ terms : term terms          { $$ = $2; prepend_to(*$2, symbol(std::move($1))); }
     ;
 
 term
-    : ID                    { $$ = grammar->nonterminal($1->c_str()).pointer(); }
-    | STR                   { $$ = grammar->terminal($1->c_str()).pointer(); }
+    : ID                    { $$ = grammar->get_non_terminal($1->c_str()).pointer(); }
+    | STR                   { $$ = grammar->get_terminal($1->c_str()).pointer(); }
     ;
 
 %%

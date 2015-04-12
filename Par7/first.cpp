@@ -119,6 +119,7 @@ std::set<non_terminal> empty_nonterminals(Grammar& grammar)
 //------------------------------------------------------------------------------
 
 std::set<terminal> first(
+                    Grammar& g,
                     Production& p,
                     const std::map<non_terminal, std::set<terminal>>& current,
                     const std::set<non_terminal>& empty_nt
@@ -126,6 +127,11 @@ std::set<terminal> first(
 {
     std::set<terminal> result;
 
+    if (p.rhs.empty()) // This is production of the form: X ->
+    {
+        result.insert(g.epsilon());
+    }
+    else
     for (const auto& x : p.rhs)
     {
         if (NonTerminal* n = dynamic_cast<NonTerminal*>(x.pointer()))
@@ -174,7 +180,7 @@ std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
         for (auto& p : grammar.productions())
         {
             size_t size_before = result[p.first].size();
-            std::set<terminal> f = first(p.second,result,empty_nt);
+            std::set<terminal> f = first(grammar, p.second, result, empty_nt);
             result[p.first].insert(f.begin(), f.end());
 
             if (!changes && size_before != result[p.first].size())
@@ -185,6 +191,43 @@ std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
     }
     while (changes);
 
+    return result;
+}
+
+//------------------------------------------------------------------------------
+
+std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar)
+{
+    const std::set<non_terminal> empty_nt = empty_nonterminals(grammar);
+    const std::map<non_terminal, std::set<terminal>> first_sets = first(grammar);
+    std::map<non_terminal, std::set<terminal>> result;
+    std::set<non_terminal> keys = rhs_nonterminals(grammar);
+
+    for (const auto& n : keys)
+    {
+        result[n] = std::set<terminal>();
+    }
+
+    bool changes = false;
+
+    do
+    {
+        changes = false;
+
+        for (auto& p : grammar.productions())
+        {
+            size_t size_before = result[p.first].size();
+            std::set<terminal> f = first(grammar, p.second, result, empty_nt);
+            result[p.first].insert(f.begin(), f.end());
+
+            if (!changes && size_before != result[p.first].size())
+            {
+                changes = true;
+            }
+        }
+    }
+    while (changes);
+    
     return result;
 }
 
