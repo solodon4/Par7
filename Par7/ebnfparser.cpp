@@ -142,6 +142,12 @@ int main(int argc, char* argv[])
             auto firstsets = first(*grammar);
             separated_output(std::cout,firstsets,"\n");
             std::cout << std::endl;
+
+            std::cout << std::endl << "Follow sets: " << std::endl;
+            extern std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar);
+            auto followsets = follow(*grammar);
+            separated_output(std::cout,followsets,"\n");
+            std::cout << std::endl;
         }
 
         return result;
