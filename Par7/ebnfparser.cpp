@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
         {
             assert(grammar); // Must be valid object after successful parsing
             std::cout << "Resulting Grammar:" << std::endl << *grammar << std::endl;
+            std::cout << "Start Symbol: " << grammar->start_symbol() << std::endl;
 
             extern std::set<non_terminal> rhs_nonterminals(Grammar&);
 

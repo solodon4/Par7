@@ -210,6 +210,8 @@ std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar)
 
     bool changes = false;
 
+    result[grammar.start_symbol()].insert(grammar.eof()); // First put $ (the end of input marker) in Follow(S) (S is the start symbol)
+
     do
     {
         changes = false;

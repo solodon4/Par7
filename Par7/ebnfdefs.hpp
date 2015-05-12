@@ -261,13 +261,14 @@ struct Production
 struct Grammar
 {
     typedef std::multimap<non_terminal, Production> productions_map;
-    typedef polymorphic<owning<NonTerminal>>       non_terminal_own;
-    typedef polymorphic<owning<   Terminal>>           terminal_own;
+
+    non_terminal start_symbol() const { return m_start_symbol; }
+            void start_symbol(non_terminal s) { m_start_symbol = s; }
 
     non_terminal get_non_terminal(const char* name);
         terminal get_terminal(const char* name);
-        terminal epsilon() { return get_terminal(""); }       // We use empty string as epsilon, don't return it as any other token
-        terminal eof()     { return get_terminal("\u0003"); } // We use ETX - End of Text as EOF terminal, don't return it as token!
+        terminal epsilon() { return get_terminal("\u03B5"); } // We use empty string as epsilon, don't return it as any other token
+        terminal eof()     { return get_terminal("\u0024"); } // We use ETX - End of Text as EOF terminal, don't return it as token!
 
     std::set<non_terminal> nonterminals() const;
 
@@ -284,10 +285,13 @@ struct Grammar
 
 private:
 
+    typedef polymorphic<owning<NonTerminal>>       non_terminal_own;
+    typedef polymorphic<owning<   Terminal>>           terminal_own;
+
     std::set<non_terminal_own> m_nonterminals;
     std::set<    terminal_own> m_terminals;
     productions_map            m_productions;
-    //non_terminal               m_start_symbol;
+    non_terminal               m_start_symbol = non_terminal(nullptr);
 
 };
 
