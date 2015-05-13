@@ -51,7 +51,7 @@ std::set<non_terminal> rhs_nonterminals(symbol& s)
 {
     std::set<non_terminal> result;
 
-    if (NonTerminal* nt = dynamic_cast<NonTerminal*>(&s))
+    if (NonTerminal* nt = s.pointer()->is_non_terminal())
     {
         result.insert(non_terminal(std::move(nt)));
     }
@@ -134,7 +134,7 @@ std::set<terminal> first(
     else
     for (const auto& x : p.second)
     {
-        if (NonTerminal* n = dynamic_cast<NonTerminal*>(x.pointer()))
+        if (NonTerminal* n = x.pointer()->is_non_terminal())
         {
             std::map<non_terminal, std::set<terminal>>::const_iterator p = current.find(non_terminal(n));
 
@@ -150,7 +150,7 @@ std::set<terminal> first(
             }
         }
         else
-        if (Terminal* t = dynamic_cast<Terminal*>(x.pointer()))
+        if (Terminal* t = x.pointer()->is_terminal())
         {
             result.insert(terminal(t));
             break;
@@ -220,6 +220,18 @@ std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar)
         {
             size_t size_before = result[p.first].size();
 
+            // If there is a production A → aBb, (where a can be a whole string) then everything in FIRST(b) except for ε is placed in FOLLOW(B).
+            for (auto i = p.second.begin(); i != p.second.end(); ++i)
+            {
+                auto j = i+1;
+
+                if (j == p.second.end())
+                {
+                    // If there is a production A → aB, then everything in FOLLOW(A) is in FOLLOW(B)
+
+                }
+
+            }
 
             std::set<terminal> f = first(grammar, p, result, empty_nt);
             result[p.first].insert(f.begin(), f.end());

@@ -222,23 +222,40 @@ struct polymorphic : Ptr
 
 //------------------------------------------------------------------------------
 
+struct    Terminal;
+struct NonTerminal;
+
 struct Symbol : std::string
 {
     using std::string::string;
     virtual ~Symbol() {}
     Symbol(const std::string& s) : std::string(s) {}
     const std::string& text() const { return *this; }
+    virtual const    Terminal* is_terminal()     const { return nullptr; }
+                     Terminal* is_terminal()           { return const_cast<   Terminal*>(const_cast<const Symbol*>(this)->is_terminal()); }
+    virtual const NonTerminal* is_non_terminal() const { return nullptr; }
+                  NonTerminal* is_non_terminal()       { return const_cast<NonTerminal*>(const_cast<const Symbol*>(this)->is_non_terminal()); }
     bool operator<(const Symbol& s) const { return text() < s.text(); }
     friend std::ostream& operator<<(std::ostream& os, const Symbol& s) { return os << s.text(); }
 };
 
 //------------------------------------------------------------------------------
 
-struct Terminal    : Symbol { using Symbol::Symbol;    Terminal(const std::string& s) : Symbol(s) {} };
+struct Terminal    : Symbol
+{
+    using Symbol::Symbol;
+    Terminal(const std::string& s) : Symbol(s) {}
+    const Terminal* is_terminal() const { return this; }
+};
 
 //------------------------------------------------------------------------------
 
-struct NonTerminal : Symbol { using Symbol::Symbol; NonTerminal(const std::string& s) : Symbol(s) {} };
+struct NonTerminal : Symbol
+{
+    using Symbol::Symbol;
+    NonTerminal(const std::string& s) : Symbol(s) {}
+    const NonTerminal* is_non_terminal() const { return this; }
+};
 
 //------------------------------------------------------------------------------
 
