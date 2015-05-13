@@ -94,7 +94,7 @@ extern Grammar* grammar;
 %%
 
 grammar
-    : grammar production    { $$ = $1; $$->append(std::move(*$2)); if (!grammar->start_symbol().pointer()) grammar->start_symbol($2->lhs); }
+    : grammar production    { $$ = $1; $$->append(std::move(*$2)); if (!grammar->start_symbol().pointer()) grammar->start_symbol($2->first); }
     | /* empty */           { grammar = $$ = new Grammar; }
 	;
 

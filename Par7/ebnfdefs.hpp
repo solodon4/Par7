@@ -69,7 +69,8 @@ std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, cons
     if (!v.empty())
     {
         std::ostream_iterator<T> out_it(os, separator);
-        std::copy(v.begin(), v.end(), out_it);
+        std::copy(v.begin(), v.end()-1, out_it);
+        os << v.back();
     }
 
     return os;
@@ -78,12 +79,22 @@ std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, cons
 //------------------------------------------------------------------------------
 
 template <typename T, typename A>
-std::ostream& separated_output(std::ostream& os, const std::set<T,A>& v, const char* separator)
+std::ostream& separated_output(std::ostream& os, const std::set<T,A>& s, const char* separator)
 {
-    if (!v.empty())
+    bool first = true;
+
+    for (const auto& e : s)
     {
-        std::ostream_iterator<T> out_it(os, separator);
-        std::copy(v.begin(), v.end(), out_it);
+        if (first)
+        {
+            first = false;
+        }
+        else
+        {
+            os << separator;
+        }
+
+        os << e;
     }
 
     return os;
@@ -237,30 +248,19 @@ typedef polymorphic<nonowning<Symbol>>            symbol;
 
 //------------------------------------------------------------------------------
 
-struct Production
+typedef std::pair<const non_terminal, std::vector<symbol>> Production;
+
+inline std::ostream& operator<<(std::ostream& os, const Production& p)
 {
-    non_terminal        lhs;
-    std::vector<symbol> rhs;
-
-    Production(
-        non_terminal&&        l,
-        std::vector<symbol>&& r)
-    :
-        lhs(std::move(l)), rhs(std::move(r))
-    {}
-
-    friend std::ostream& operator<<(std::ostream& os, const Production& p)
-    {
-        os << p.lhs << " \t= ";
-        return separated_output(os, p.rhs, " ") << " ;";
-    }
-};
+    os << p.first << " \t= ";
+    return separated_output(os, p.second, " ") << " ;";
+}
 
 //------------------------------------------------------------------------------
 
 struct Grammar
 {
-    typedef std::multimap<non_terminal, Production> productions_map;
+    typedef std::multimap<non_terminal, std::vector<symbol>> productions_map;
 
     non_terminal start_symbol() const { return m_start_symbol; }
             void start_symbol(non_terminal s) { m_start_symbol = s; }
@@ -279,7 +279,7 @@ struct Grammar
 
     friend std::ostream& operator<<(std::ostream& os, const Grammar& r)
     {
-        for (const auto& p : r.m_productions) os << p.second << std::endl;
+        for (const auto& p : r.productions()) os << p << std::endl;
         return os;
     }
 
@@ -315,5 +315,5 @@ inline std::set<non_terminal> Grammar::nonterminals() const
 
 inline void Grammar::append(Production&& p)
 {
-    m_productions.insert(productions_map::value_type(p.lhs, std::move(p)));
+    m_productions.emplace(std::move(p.first), std::move(p.second));
 }
