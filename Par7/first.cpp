@@ -47,9 +47,9 @@
 
 //------------------------------------------------------------------------------
 
-std::set<non_terminal> rhs_nonterminals(symbol& s)
+non_terminal_set rhs_nonterminals(symbol& s)
 {
-    std::set<non_terminal> result;
+    non_terminal_set result;
 
     if (NonTerminal* nt = s.pointer()->is_non_terminal())
     {
@@ -59,26 +59,26 @@ std::set<non_terminal> rhs_nonterminals(symbol& s)
     return result;
 }
 
-std::set<non_terminal> rhs_nonterminals(Production& p)
+non_terminal_set rhs_nonterminals(Production& p)
 {
-    std::set<non_terminal> result;
+    non_terminal_set result;
 
     for (auto& s : p.second)
     {
-        std::set<non_terminal> tmp = rhs_nonterminals(s);
+        non_terminal_set tmp = rhs_nonterminals(s);
         result.insert(tmp.begin(), tmp.end());
     }
 
     return result;
 }
 
-std::set<non_terminal> rhs_nonterminals(Grammar& grammar)
+non_terminal_set rhs_nonterminals(Grammar& grammar)
 {
-    std::set<non_terminal> result;
+    non_terminal_set result;
 
     for (auto& p : grammar.productions())
     {
-        std::set<non_terminal> tmp = rhs_nonterminals(p);
+        non_terminal_set tmp = rhs_nonterminals(p);
         result.insert(tmp.begin(), tmp.end());
     }
 
@@ -87,9 +87,9 @@ std::set<non_terminal> rhs_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::set<non_terminal> lhs_nonterminals(Grammar& grammar)
+non_terminal_set lhs_nonterminals(Grammar& grammar)
 {
-    std::set<non_terminal> result;
+    non_terminal_set result;
 
     for (auto& p : grammar.productions())
     {
@@ -101,9 +101,9 @@ std::set<non_terminal> lhs_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::set<non_terminal> empty_nonterminals(Grammar& grammar)
+non_terminal_set empty_nonterminals(Grammar& grammar)
 {
-    std::set<non_terminal> result;
+    non_terminal_set result;
 
     for (auto& p : grammar.productions())
     {
@@ -118,29 +118,32 @@ std::set<non_terminal> empty_nonterminals(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::set<terminal> first(
+terminal_set first(
                     Grammar& g,
-                    Production& p,
-                    const std::map<non_terminal, std::set<terminal>>& current,
-                    const std::set<non_terminal>& empty_nt
-                    )
+                    symbol_sequence::const_iterator beg,
+                    symbol_sequence::const_iterator end,
+                    const std::map<non_terminal, terminal_set>& current,
+                    const non_terminal_set& empty_nt
+             )
 {
-    std::set<terminal> result;
+    terminal_set result;
 
-    if (p.second.empty()) // This is production of the form: X ->
+    if (beg==end) // This is production of the form: X ->
     {
         result.insert(g.epsilon());
     }
     else
-    for (const auto& x : p.second)
+    for (symbol_sequence::const_iterator p = beg; p != end; ++p)
     {
+        const auto& x = *p;
+
         if (NonTerminal* n = x.pointer()->is_non_terminal())
         {
-            std::map<non_terminal, std::set<terminal>>::const_iterator p = current.find(non_terminal(n));
+            std::map<non_terminal, terminal_set>::const_iterator p = current.find(non_terminal(n));
 
             if (p != current.end())
             {
-                const std::set<terminal>& s = p->second;
+                const terminal_set& s = p->second;
                 result.insert(s.begin(), s.end());
             }
 
@@ -160,15 +163,15 @@ std::set<terminal> first(
     return result;
 }
 
-std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
+std::map<non_terminal, terminal_set> first(Grammar& grammar)
 {
-    const std::set<non_terminal> empty_nt = empty_nonterminals(grammar);
-    std::map<non_terminal, std::set<terminal>> result;
-    std::set<non_terminal> keys = rhs_nonterminals(grammar);
+    const non_terminal_set empty_nt = empty_nonterminals(grammar);
+    std::map<non_terminal, terminal_set> result;
+    non_terminal_set keys = rhs_nonterminals(grammar);
 
     for (const auto& n : keys)
     {
-        result[n] = std::set<terminal>();
+        result[n] = terminal_set();
     }
 
     bool changes = false;
@@ -180,7 +183,7 @@ std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
         for (auto& p : grammar.productions())
         {
             size_t size_before = result[p.first].size();
-            std::set<terminal> f = first(grammar, p, result, empty_nt);
+            terminal_set f = first(grammar, p.second.begin(), p.second.end(), result, empty_nt);
             result[p.first].insert(f.begin(), f.end());
 
             if (!changes && size_before != result[p.first].size())
@@ -196,16 +199,16 @@ std::map<non_terminal, std::set<terminal>> first(Grammar& grammar)
 
 //------------------------------------------------------------------------------
 
-std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar)
+std::map<non_terminal, terminal_set> follow(Grammar& grammar)
 {
-    const std::set<non_terminal> empty_nt = empty_nonterminals(grammar);
-    const std::map<non_terminal, std::set<terminal>> first_sets = first(grammar);
-    std::map<non_terminal, std::set<terminal>> result;
-    std::set<non_terminal> keys = rhs_nonterminals(grammar);
+    const non_terminal_set empty_nt = empty_nonterminals(grammar);
+    const std::map<non_terminal, terminal_set> first_sets = first(grammar);
+    std::map<non_terminal, terminal_set> result;
+    non_terminal_set keys = rhs_nonterminals(grammar);
 
     for (const auto& n : keys)
     {
-        result[n] = std::set<terminal>();
+        result[n] = terminal_set();
     }
 
     bool changes = false;
@@ -218,27 +221,41 @@ std::map<non_terminal, std::set<terminal>> follow(Grammar& grammar)
 
         for (auto& p : grammar.productions())
         {
-            size_t size_before = result[p.first].size();
-
             // If there is a production A → aBb, (where a can be a whole string) then everything in FIRST(b) except for ε is placed in FOLLOW(B).
             for (auto i = p.second.begin(); i != p.second.end(); ++i)
             {
-                auto j = i+1;
-
-                if (j == p.second.end())
+                if (NonTerminal* n = i->pointer()->is_non_terminal())
                 {
-                    // If there is a production A → aB, then everything in FOLLOW(A) is in FOLLOW(B)
+                    size_t size_before = result[non_terminal(n)].size();
+                    auto j = i+1;
 
+                    if (j == p.second.end())
+                    {
+                        // If there is a production A → aB, then everything in FOLLOW(A) is in FOLLOW(B)
+                        result[non_terminal(n)] = join(result[non_terminal(n)], result[p.first]);
+                    }
+                    else
+                    {
+                        // If there is a production A → aBb, (where a can be a whole string) then everything in FIRST(b) except for ε is placed in FOLLOW(B).
+                        terminal_set fs = first(grammar, j, p.second.end(), first_sets, empty_nt);
+                        terminal_set::const_iterator q = fs.find(grammar.epsilon());
+
+                        if (q != fs.end())
+                        {
+                            // If there is a production A → aBb, where FIRST(b) contains ε, then everything in FOLLOW(A) is in FOLLOW(B)
+                            result[non_terminal(n)] = join(result[non_terminal(n)], result[p.first]);
+                            fs.erase(q);
+                        }
+
+                        result[non_terminal(n)] = join(result[non_terminal(n)], fs);
+
+                    }
+
+                    if (!changes && size_before != result[non_terminal(n)].size())
+                    {
+                        changes = true;
+                    }
                 }
-
-            }
-
-            std::set<terminal> f = first(grammar, p, result, empty_nt);
-            result[p.first].insert(f.begin(), f.end());
-
-            if (!changes && size_before != result[p.first].size())
-            {
-                changes = true;
             }
         }
     }

@@ -141,6 +141,16 @@ std::set<T,A> difference(const std::set<T,A>& a, const std::set<T,A>& b)
 
 //------------------------------------------------------------------------------
 
+template <typename T, typename A>
+std::set<T,A> join(const std::set<T,A>& a, const std::set<T,A>& b)
+{
+    std::set<T,A> result;
+    std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::inserter(result, result.begin()));
+    return result;
+}
+
+//------------------------------------------------------------------------------
+
 template <typename T>
 class owning
 {
@@ -265,7 +275,12 @@ typedef polymorphic<nonowning<Symbol>>            symbol;
 
 //------------------------------------------------------------------------------
 
-typedef std::pair<const non_terminal, std::vector<symbol>> Production;
+typedef std::set<non_terminal> non_terminal_set;
+typedef std::set<    terminal>     terminal_set;
+typedef std::vector<symbol> symbol_sequence;
+typedef std::pair<const non_terminal, symbol_sequence> Production;
+
+//------------------------------------------------------------------------------
 
 inline std::ostream& operator<<(std::ostream& os, const Production& p)
 {
@@ -277,7 +292,7 @@ inline std::ostream& operator<<(std::ostream& os, const Production& p)
 
 struct Grammar
 {
-    typedef std::multimap<non_terminal, std::vector<symbol>> productions_map;
+    typedef std::multimap<non_terminal, symbol_sequence> productions_map;
 
     non_terminal start_symbol() const { return m_start_symbol; }
             void start_symbol(non_terminal s) { m_start_symbol = s; }
