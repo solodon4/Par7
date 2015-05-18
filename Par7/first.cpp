@@ -51,9 +51,9 @@ non_terminal_set rhs_nonterminals(symbol& s)
 {
     non_terminal_set result;
 
-    if (NonTerminal* nt = s.pointer()->is_non_terminal())
+    if (non_terminal nt = s.pointer()->is_non_terminal())
     {
-        result.insert(non_terminal(std::move(nt)));
+        result.insert(std::move(nt));
     }
 
     return result;
@@ -137,9 +137,9 @@ terminal_set first(
     {
         const auto& x = *p;
 
-        if (NonTerminal* n = x.pointer()->is_non_terminal())
+        if (non_terminal n = x.pointer()->is_non_terminal())
         {
-            std::map<non_terminal, terminal_set>::const_iterator p = current.find(non_terminal(n));
+            std::map<non_terminal, terminal_set>::const_iterator p = current.find(n);
 
             if (p != current.end())
             {
@@ -147,15 +147,15 @@ terminal_set first(
                 result.insert(s.begin(), s.end());
             }
 
-            if (empty_nt.find(non_terminal(n)) == empty_nt.end())
+            if (empty_nt.find(n) == empty_nt.end())
             {
                 break;
             }
         }
         else
-        if (Terminal* t = x.pointer()->is_terminal())
+        if (terminal t = x.pointer()->is_terminal())
         {
-            result.insert(terminal(t));
+            result.insert(t);
             break;
         }
     }
@@ -224,15 +224,15 @@ std::map<non_terminal, terminal_set> follow(Grammar& grammar)
             // If there is a production A → aBb, (where a can be a whole string) then everything in FIRST(b) except for ε is placed in FOLLOW(B).
             for (auto i = p.second.begin(); i != p.second.end(); ++i)
             {
-                if (NonTerminal* n = i->pointer()->is_non_terminal())
+                if (non_terminal n = i->pointer()->is_non_terminal())
                 {
-                    size_t size_before = result[non_terminal(n)].size();
+                    size_t size_before = result[n].size();
                     auto j = i+1;
 
                     if (j == p.second.end())
                     {
                         // If there is a production A → aB, then everything in FOLLOW(A) is in FOLLOW(B)
-                        result[non_terminal(n)] = join(result[non_terminal(n)], result[p.first]);
+                        result[n] = join(result[n], result[p.first]);
                     }
                     else
                     {
@@ -243,15 +243,15 @@ std::map<non_terminal, terminal_set> follow(Grammar& grammar)
                         if (q != fs.end())
                         {
                             // If there is a production A → aBb, where FIRST(b) contains ε, then everything in FOLLOW(A) is in FOLLOW(B)
-                            result[non_terminal(n)] = join(result[non_terminal(n)], result[p.first]);
+                            result[n] = join(result[n], result[p.first]);
                             fs.erase(q);
                         }
 
-                        result[non_terminal(n)] = join(result[non_terminal(n)], fs);
+                        result[n] = join(result[n], fs);
 
                     }
 
-                    if (!changes && size_before != result[non_terminal(n)].size())
+                    if (!changes && size_before != result[n].size())
                     {
                         changes = true;
                     }

@@ -200,11 +200,12 @@ public:
 template <typename Ptr>
 struct polymorphic : Ptr
 {
-    using Ptr::Ptr;
+    using Ptr::Ptr; // Forward all construction calls to the actual pointer implementation
     using typename Ptr::value_type;
 
     value_type& value() const { return *this->pointer(); }
 
+    explicit operator bool() const { return this->pointer() != nullptr; } // NOTE: Should this forward to value when operator bool is present there?
 
     template <typename U>
     bool operator< (U&& u) const { return value() <  std::forward<U>(u); }
@@ -215,7 +216,7 @@ struct polymorphic : Ptr
     bool operator==(const polymorphic& v) const { return value() == v.value(); }
 
     const value_type* operator&() const { return this->pointer(); }
-    value_type* operator&()       { return this->pointer(); }
+          value_type* operator&()       { return this->pointer(); }
 
     friend std::ostream& operator<<(std::ostream& os, const polymorphic& p)
     {
