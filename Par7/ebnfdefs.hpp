@@ -42,187 +42,9 @@
 
 #pragma once
 
-#include <iostream>     // std::clog for bison printer
+#include "valueptr.hpp"
+#include "stlutils.hpp"
 #include <string>
-#include <iterator>     // std::ostream_iterator
-#include <set>          // std::set
-#include <vector>       // std::vector
-#include <algorithm>    // std::copy
-#include <map>
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A, typename U>
-void prepend_to(std::vector<T,A>& v, U&& u)
-{
-    if (v.empty())
-        v.emplace_back(std::move(u));
-    else
-        v.emplace(v.begin(),std::move(u));
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A>
-std::ostream& separated_output(std::ostream& os, const std::vector<T,A>& v, const char* separator)
-{
-    if (!v.empty())
-    {
-        std::ostream_iterator<T> out_it(os, separator);
-        std::copy(v.begin(), v.end()-1, out_it);
-        os << v.back();
-    }
-
-    return os;
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A>
-std::ostream& separated_output(std::ostream& os, const std::set<T,A>& s, const char* separator)
-{
-    bool first = true;
-
-    for (const auto& e : s)
-    {
-        if (first)
-        {
-            first = false;
-        }
-        else
-        {
-            os << separator;
-        }
-
-        os << e;
-    }
-
-    return os;
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A>
-std::ostream& operator<<(std::ostream& os, const std::set<T,A>& v)
-{
-    os << '{';
-    separated_output(os,v,",");
-    return os << '}';
-}
-
-//------------------------------------------------------------------------------
-
-template <typename K, typename T, typename A>
-std::ostream& separated_output(std::ostream& os, const std::map<K,T,A>& v, const char* separator)
-{
-    if (!v.empty())
-    {
-        bool first = true;
-
-        for (const auto& x : v)
-        {
-            os << (first ? "" : separator) << x.first << " \t-> " << x.second;
-            first = false;
-        }
-    }
-
-    return os;
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A>
-std::set<T,A> difference(const std::set<T,A>& a, const std::set<T,A>& b)
-{
-    std::set<T,A> result;
-    std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::inserter(result, result.begin()));
-    return result;
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T, typename A>
-std::set<T,A> join(const std::set<T,A>& a, const std::set<T,A>& b)
-{
-    std::set<T,A> result;
-    std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::inserter(result, result.begin()));
-    return result;
-}
-
-//------------------------------------------------------------------------------
-
-template <typename T>
-class owning
-{
-
-    std::unique_ptr<T> ptr;
-
-public:
-
-    typedef T value_type;
-
-    owning(owning&& v) : ptr(std::move(v.ptr)) {}
-
-    template <typename... U>
-    owning(U&&... u) : ptr(new T(std::forward<U>(u)...)) {}
-
-    T* pointer() const { return ptr.get(); }
-
-};
-
-//------------------------------------------------------------------------------
-
-template <typename T>
-class nonowning
-{
-
-    T* ptr;
-
-public:
-
-    typedef T value_type;
-
-    nonowning(const nonowning& v) : ptr(v.ptr) {}
-    nonowning(nonowning&& v) : ptr(std::move(v.ptr)) {}
-
-    nonowning(T*   v) : ptr(v) {}
-    //    nonowning(T*&& v) : ptr(std::move(v)) {}
-    nonowning(const owning<T>& v) : ptr(v.pointer()) {}
-
-    nonowning& operator=(const nonowning& v) { ptr = v.ptr; return *this; }
-
-    T* pointer() const { return ptr; }
-
-};
-
-//------------------------------------------------------------------------------
-
-template <typename Ptr>
-struct polymorphic : Ptr
-{
-    using Ptr::Ptr; // Forward all construction calls to the actual pointer implementation
-    using typename Ptr::value_type;
-
-    value_type& value() const { return *this->pointer(); }
-
-    explicit operator bool() const { return this->pointer() != nullptr; } // NOTE: Should this forward to value when operator bool is present there?
-
-    template <typename U>
-    bool operator< (U&& u) const { return value() <  std::forward<U>(u); }
-    bool operator< (const polymorphic& v) const { return value() < v.value(); }
-
-    template <typename U>
-    bool operator==(U&& u) const { return value() == std::forward<U>(u); }
-    bool operator==(const polymorphic& v) const { return value() == v.value(); }
-
-    const value_type* operator&() const { return this->pointer(); }
-          value_type* operator&()       { return this->pointer(); }
-
-    friend std::ostream& operator<<(std::ostream& os, const polymorphic& p)
-    {
-        return os << *p.pointer();
-    }
-};
 
 //==============================================================================
 // Forward declarations
@@ -235,6 +57,8 @@ struct polymorphic : Ptr
 
 struct    Terminal;
 struct NonTerminal;
+
+//------------------------------------------------------------------------------
 
 struct Symbol : std::string
 {
@@ -328,11 +152,15 @@ private:
 
 };
 
+//------------------------------------------------------------------------------
+
 inline non_terminal Grammar::get_non_terminal(const char* name)
 {
     auto x = m_nonterminals.insert(name);
     return x.first->pointer();
 }
+
+//------------------------------------------------------------------------------
 
 inline     terminal Grammar::get_terminal(const char* name)
 {
@@ -340,13 +168,19 @@ inline     terminal Grammar::get_terminal(const char* name)
     return x.first->pointer();
 }
 
+//------------------------------------------------------------------------------
+
 inline std::set<non_terminal> Grammar::nonterminals() const
 {
     std::set<non_terminal> result(m_nonterminals.begin(), m_nonterminals.end());
     return result;
 }
 
+//------------------------------------------------------------------------------
+
 inline void Grammar::append(Production&& p)
 {
     m_productions.emplace(std::move(p.first), std::move(p.second));
 }
+
+//------------------------------------------------------------------------------
